@@ -3,7 +3,7 @@ import { ResultList } from "./components/ResultList.js"
 import { fixedFilterMobile, mobileFilter, toggleTab } from "./functions/dom.js"
 
 try {
-    const response = await fetch('/matchs.json', {
+    const response = await fetch('./public/matchs.json', {
         headers: {
             Accept: 'application/json',
         }
