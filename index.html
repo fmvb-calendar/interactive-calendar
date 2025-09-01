@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier interactif</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <script src="./app.js" type="module" defer></script>
+</head>
+<body>
+    <header id="header">
+        <h1>Championnat de Madagascar 1er Division</h1>
+        <img src="./assets/image/banner.jpg" alt="banniere">
+    </header>
+    <main class="mb-5">
+        <div class="mb-5">
+            <div class="container mb-5">
+                <div class="tab">
+                    <span class="tab-item active" data-tab="calendar">Matchs</span>
+                    <span class="tab-item" data-tab="resultat">Résultats</span>
+                </div>
+            </div>
+        </div>
+    
+        <section class="tab-content container active" id="calendar">
+        </section>
+    
+        <section class="tab-content container" id="resultat">
+        </section>
+    </main>
+
+    <footer id="footer">
+        © 2025 Championnat de Madagascar – Tous droits réservés
+    </footer>
+
+    
+    <template id="matchList-layout">
+
+        <div id="sentinel"></div>
+        <div class="mobileFilter d-lg-none">
+            <div class="btn-filter d-flex">
+                Filtres
+            </div>
+        </div>
+
+        <div class="filter">
+            <div class="filter-item">
+                <div class="btn-close icon-cross d-lg-none"></div>
+
+                <fieldset>
+                    <legend>Catégorie</legend>
+                    <div class="filter-category">
+                        <div>
+                            <input type="radio" name="categorie" value="all" id="all">
+                            <label for="all">
+                                Toutes les catégories
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" name="categorie" value="Homme" id="masculin">
+                            <label for="masculin">
+                                Homme
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" name="categorie" value="Femme" id="feminin">
+                            <label for="feminin">
+                                Femme
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+        
+                <div>
+                    <legend>Jour de compétition</legend>
+                    <select id="dateFilter">
+                        <option value="all">Tous les jours</option>
+                        <option value="2025-08-08">Samedi (8 Aout)</option>
+                        <option value="2025-08-09">Dimanche (9 Aout)</option>
+                        <option value="2025-08-10">Lundi (10 Aout)</option>
+                        <option value="2025-08-11">Mardi (11 Aout)</option>
+                    </select>
+                </div>
+    
+                <div>
+                    <legend>Equipe</legend>
+                    <select id="teamFilter">
+                        <option value="all">Toutes les équipes</option>
+                        <option value="ASI">ASI</option>
+                        <option value="2AVB">2AVB</option>
+                        <option value="GNVB">ASSM</option>
+                        <option value="CSA">CSA</option>
+                        <option value="CVBA">CVBA</option>
+                        <option value="GNVB">GNVB</option>
+                    </select>
+                </div>
+    
+                <div class="d-flex align-items-center justify-content-between mt-auto mt-lg-0">
+                    <button id="resetFilters" type="button">Réinitialiser</button>
+                    <button id="applyFilters" type="button" class="d-lg-none">Appliquer</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- <div id="calendar"></div> -->
+        <ul id="matchList">
+    
+        </ul>
+
+    </template>
+
+    <template id="matchList-item">
+        <li class="match-list-item" data-category="all" data-day="all" data-team-a="all" data-team-b="all">
+            <div class="match-title">Match amicale</div>
+            <div class="match-info">
+                <span class="match-genre">Homme </span> <span>|</span>   
+                <span class="match-lieu">Gymnase Ankorondrano </span> <span class="clear">|</span> 
+                <span class="match-date">20 Aout 2025</span>
+            </div>
+            <div class="team">
+                <div class="team-item justify-content-end">
+                    <span class="teamA">France</span>
+                    <div class="team-flag team-flag-a">
+                        <img src="./assets/image/france.svg" alt="france">
+                    </div>
+                </div>
+                <div class="match-heure">
+                    12:00
+                </div>
+                <div class="team-item justify-content-start">
+                    <div class="team-flag team-flag-b">
+                        <img src="./assets/image/serbie.svg" alt="serbie">
+                    </div>
+                    <span class="teamB">Serbie</span>
+                </div>
+            </div>
+            <div class="score">0-0 | 0-0 | 0-0</div>
+        </li>
+    </template>
+</body>
+</html>

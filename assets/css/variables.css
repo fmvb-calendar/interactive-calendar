@@ -1,0 +1,167 @@
+/* -------------
+    SOMMAIRE
+------------- */
+
+/* @AUTHOR : Nicolas BOUDOT */
+
+/*
+  1 - COULEURS
+        Palette
+        Attribution
+        Fonctionnalités
+
+  2 - FONT-FAMILY
+*/
+
+:root {
+
+    /* -----------------
+      1 - COULEURS
+            Palette
+    ----------------- */
+
+
+    /*
+      @infos : Pourquoi déclarer les couleurs en RGB ?
+        Pour faciliter l'intégration des couleurs ainsi que leur variante avec de la transparence,
+        il est préférable de les déclarer en RGB.
+        On pourra ensuite déclarer dans nos fichiers : background-color: rgb(var(--color-primary--rgb-value) / 65%);
+    */
+
+    /* Blanc */
+	--white:                    #ffffff;
+	    --white--rgb-value:   255 255 255;
+	--cream-white:                    #f1faee;
+	    --cream-white--rgb-value:   241 250 238;
+
+    /* Noir */
+	--black:                #000000;
+	    --black--rgb-value:     0 0 0;
+
+    /* Gris */
+    --gray-100:                   #F8F8F8;
+        --gray-100--rgb-value:  248 248 248;
+    --gray-200:                   #F4F4F4; /* Gris */
+        --gray-200--rgb-value:  244 244 244;
+    --gray-300:                   #EDECEA; /* Gris */
+        --gray-300--rgb-value:  237 236 234;
+    --gray-400:                   #DBDBDB;
+        --gray-400--rgb-value:  219 219 219;
+    --gray-500:                   #c4cddb;
+        --gray-500--rgb-value:  196 205 219;
+    --gray-600:                   #B0B0B0; /* Gris */
+        --gray-600--rgb-value:  176 176 176;
+    --gray-700:                   #707070; /* Gris */
+        --gray-700--rgb-value:  112 112 112;
+    --gray-800:                   #343a40;
+        --gray-800--rgb-value:     52 58 64;
+    --gray-900:                   #252525; /* Gris */
+        --gray-900--rgb-value:     37 37 37;
+
+    /* Couleurs */
+    --blue-light:                     #C9D1FD;
+        --blue-light--rgb-value:    201 209 253;
+    --blue:                           #3151FF;
+        --blue--rgb-value:            49 81 255;
+    --blue-dark:                      #264653;
+        --blue-dark--rgb-value:        38 70 83;
+    --indigo:                         #4155EB;
+        --indigo--rgb-value:          65 85 235;
+    --purple:                         #C9D1FD;
+        --purple--rgb-value:        201 209 253;
+    --pink:                           #EF9297; /* Rose */
+        --pink--rgb-value:          239 146 151;
+    --red:                            #E63946; /* Rouge */
+        --red--rgb-value:              230 57 70;
+    --red-dark:                       #B90100;
+        --red-dark--rgb-value:          185 1 0;
+    --red-brown:                      #5C3A31;
+        --red-brown--rgb-value:        92 58 49;
+    --orange:                         #F4A261;
+        --orange--rgb-value:         244 162 97;
+    --orange-light:                         #F28482;
+        --orange-light--rgb-value:         242 132 130;
+    --orange-dark:                         #E88B3B;
+        --orange-dark--rgb-value:         232 139 59;
+    --khaki:                          #B7A568;
+        --khaki--rgb-value:         183 165 104;
+    --yellow:                         #FFD166;
+        --yellow--rgb-value:         255 209 102;
+    --yellow-dark:                    #7a6f2e;
+        --yellow-dark--rgb-value:    122 111 46;
+    --green-pastel:                   #3EB489; /* Vert pastel */
+        --green-pastel--rgb-value:  62 180 137;
+    --green-gray:                     #8EA29A; /* Vert-Gris */
+        --green-gray--rgb-value:    142 162 154;
+    --green:                          #2A9D8F; /* Vert */
+        --green--rgb-value:            42 157 143;
+    --teal:                           #20c997;
+        --teal--rgb-value:           32 201 151;
+    --cyan:                           #17a2b8;
+        --cyan--rgb-value:           23 162 184;
+
+
+
+    /* -------------------------
+      1 - COULEURS
+            Attribution
+    ------------------------- */
+
+    /*
+        @infos : Liste des noms
+            Pour retrouver facilement les 10 noms de couleurs possibles pour un thème :
+
+        --color-primary:        var(--gray-100);
+        --color-secondary:      var(--gray-100);
+        --color-tertiary:       var(--gray-100);
+        --color-quaternary:     var(--gray-100);
+        --color-quinary:        var(--gray-100);
+        --color-senary:         var(--gray-100);
+        --color-septenary:      var(--gray-100);
+        --color-octonary:       var(--gray-100);
+        --color-nonary:         var(--gray-100);
+        --color-denary:         var(--gray-100);
+    */
+
+    /* Valeurs RGB du thème */
+    --color-primary--rgb-value:     var(--green--rgb-value);
+    --color-secondary--rgb-value:   var(--gray-600--rgb-value);
+    --color-tertiary--rgb-value:    var(--green-gray--rgb-value);
+    --color-quaternary--rgb-value:  var(--green-pastel--rgb-value);
+    --color-quinary--rgb-value:     var(--gray-900--rgb-value);
+
+    /* Thème */
+    --color-primary:        var(--blue-dark);
+    --color-secondary:      var(--red);
+    --color-tertiary:       var(--green);
+    --color-quaternary:     rgb(var(--color-quaternary--rgb-value));
+    --color-quinary:        rgb(var(--color-primary--rgb-value));
+
+    /* Liens */
+    --color-hyperlink:      var(--gray-700);
+
+    /* Défaut */
+    --color-success:       #28a745;
+    --color-info:          #17a2b8;
+    --color-warning:       #ffc107;
+    --color-danger:        #dc3545;
+    --color-light:         #f8f9fa;
+    --color-dark:          #343a40;
+
+
+
+    /* -----------------
+      2 - FONT-FAMILY
+    ----------------- */
+
+    /*
+        @exemple :
+        --ff-primary:           "ardoise-std", sans-serif;
+        --ff-primary--narrow:   "ardoise-narrow-std", sans-serif;
+        --ff-secondary:         "gravesend-sans", sans-serif;
+    */
+
+    --font-primary:     'Montserrat', sans-serif;
+    --font-secondary:   'Playfair Display', serif;
+}
+

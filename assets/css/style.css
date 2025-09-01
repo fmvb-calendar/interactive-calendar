@@ -1,0 +1,489 @@
+@charset "iso-8859-1";
+
+@import url(./reset.css);
+@import url(./boostrap-grid-5.css);
+@import url(./variables.css);
+@import url(../fonts/icomoon/style.css);
+
+/* ---------------------------------------------
+  01 - IMPORT DES FONTS
+        Principale - Montserrat
+--------------------------------------------- */
+
+/* Black */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-Black.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Light */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-Light.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Bold */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-Bold.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Extrabold */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-ExtraBold.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-ExtraBold.woff') format('woff');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Regular */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-Regular.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Semibold */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-SemiBold.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-SemiBold.woff') format('woff');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Medium */
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/montserrat/Montserrat-Medium.woff2') format('woff2'),
+        url('../fonts/montserrat/Montserrat-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ---------------------
+  02 - RÈGLES DE BASE
+--------------------- */
+
+html {
+	font-size: 62.5%;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+body {
+    background-color: var(--cream-white);
+    color: var(--color-primary);
+    font-family: var(--font-primary);
+    font-weight: 400;
+    font-size: 1.6rem;
+    line-height: 1.2;
+    /* @changelog 2025-03-25 [FIX] (Nicolas) Masquage car empêche l'utilisation de p-sticky */
+    /* overflow-x: hidden; */
+    scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.team-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 100px;
+}
+@media (min-width: 768px) {
+    .team-item {
+        flex-direction: row;
+    }
+}
+@media (max-width: 767px) {
+    .team-item > span {
+        order: 2;
+    }
+}
+.team-flag {
+    width: 30px;
+    height: 30px;
+}
+.team-flag img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.team {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+li {
+    list-style-type: none;
+}
+.match-list-item {
+    border-bottom: 1px solid var(--gray-600);
+    padding: 15px 30px;
+    /* background: linear-gradient(to bottom,#ffffff 0%,#f5f7f9 100%); */
+    background: var(--cream-white);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+@media (min-width: 768px) {
+    .match-list-item {
+        padding: 15px;
+    }
+    
+}
+.match-list-item::after {
+    font-family: icomoon;
+    position: absolute;
+    top: 83%;
+    right: 0;
+    font-size: 60px;
+    transform: translateY(-50%);
+    opacity: .1;
+}
+@media (min-width: 768px) {
+    .match-list-item::after {
+        top: 72%;
+        font-size: 70px;
+    }
+}
+.match-list-item[data-category = "Homme"]::after {
+    content: "\e901";
+}
+.match-list-item[data-category = "Femme"]::after {
+    content: "\e900";
+}
+/* .match-list-item[data-category = "Homme"] {
+    border-left: 5px solid #16288c;
+}
+.match-list-item[data-category = "Femme"] {
+    border-left: 5px solid #d62828;
+} */
+
+#matchList {
+    padding: 0;
+}
+#matchList.hide-femme li[data-category = "Femme"],
+#matchList.hide-homme li[data-category = "Homme"] {
+    display: none;
+}
+
+.match-title {
+    font-weight: 700;
+}
+
+.match-heure {
+    color: var(--color-primary);
+    background-color: var(--gray-500);
+    border-radius: 20px;
+    padding: 3px 10px;
+    min-width: 90px;
+}
+#calendar .match-heure {
+    font-weight: bold;
+}
+
+.match-info {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+}
+
+legend {
+    font-size: 1.6rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+input[type="radio"] {
+    display: none;
+}
+input[type="radio"] + label{
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+input[type="radio"] + label::before{
+    content: '\e902';
+    font-family: icomoon;
+    width: 16px;
+    height: 16px;
+    display: block;
+    margin-right: 6px;
+    background-color: var(--cream-white);
+    transition: border .3s;
+}
+input[type="radio"]:checked + label,
+input[type="radio"]:checked + label::before {
+    color:  var(--color-primary);
+    font-weight: 600;
+}
+
+.date-separator {
+    background-color: var(--green-pastel);
+    color: var(--black);
+    padding: 10px 30px;
+    font-weight: 700;
+}
+@media (min-width: 768px) {
+    .date-separator {
+        padding: 10px;
+    }
+}
+.date-separator:not(:first-child) {
+    margin-top: 20px;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -ms-appearance: none;
+
+    background-color: var(--cream-white);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: 6px;
+    padding: 10px;
+    background-image: url('../image/arrow_down.svg');
+    background-position: 96% center;
+    background-size: 16px;
+    background-repeat: no-repeat;
+    min-width: 190px;
+    font-size: 1.6rem;
+}
+
+@media (max-width: 991px) {
+    .filter {
+        position: fixed;
+        width: 100vw;
+        height: 100%;
+        top: 0;
+        left: 100%;
+        background-color: rgba(0,0,0,.6);
+        z-index: 10;
+        transition: left .3s;
+    }
+    .filter.active {
+        left: 0;
+    }
+}
+.filter-item {
+    background-color: var(--cream-white);
+    width: 80%;
+    height: 100%;
+    padding: 45px 15px 15px;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+@media (min-width: 992px) {
+    .filter-item {
+        flex-direction: row;
+        margin-left: initial;
+        width: 100%;
+        padding: 0 0 15px;
+        justify-content: space-between;
+    }
+}
+.filter>* {
+    flex: 1;
+}
+
+.no-match {
+    text-align: center;
+    font-weight: 700;
+}
+
+button {
+    background-color: var(--color-primary);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--color-primary);
+    font-size: 1.6rem;
+    color: var(--cream-white);
+    font-weight: 600;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: all .3s;
+}
+button:hover {
+    background-color: var(--cream-white);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+#resetFilters {
+    display: flex;
+    align-items: center;
+}
+#resetFilters::before {
+    content: "\e984";
+    font-family: icomoon;
+    margin-right: 6px;
+}
+#applyFilters {
+    background-color: var(--color-tertiary);
+    color: var(--gray-900);
+    border-color: var(--color-tertiary);
+}
+
+#header {
+    max-height: 250px;
+    background-color: var(--black);
+    color: var(--cream-white);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+    padding: 0 30px;
+    flex: 1 0 250px;
+}
+#header img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 38%;
+    opacity: .6;
+}
+
+h1 {
+    font-size: 4rem;
+    z-index: 1;
+}
+@media(min-width: 992px) {
+    h1 {
+        font-size: 5rem;
+    }
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid var(--gray-600);
+}
+.tab-item {
+    font-size: 1.8rem;
+    padding-bottom: 10px;
+    position: relative;
+    cursor: pointer;
+    color: var(--color-primary);
+}
+.tab-item.active {
+    color: var(--color-secondary);
+    font-weight: 700;
+}
+.tab-item:hover {
+    color: var(--color-secondary);
+}
+.tab-item.active::after,
+.tab-item:hover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-secondary);
+}
+.tab-content:not(.active),
+#resultat .clear {
+    display: none;
+}
+@media (max-width: 767px) {
+    .tab-content {
+        padding: 0;
+    }
+}
+
+.score {
+    color: var(--color-primary);
+    margin-top: 10px;
+}
+
+.btn-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+}
+.btn-filter {
+    width: max-content;
+    padding: 10px;
+    background-color: var(--color-primary);
+    color: var(--cream-white);
+    border-radius: 6px;
+    margin: 0 0 20px 30px;
+    font-weight: 600;
+    align-items: center;
+}
+.btn-filter::before {
+    content: "\e903";
+    font-family: icomoon;
+    font-weight: 400;
+    margin-right: 6px;
+}
+@media (min-width: 768px) {
+    .btn-filter {
+        margin: 0 0 20px;
+    }
+}
+.mobileFilter {
+    position: relative;
+}
+.mobileFilter.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9;
+    padding: 10px 0;
+    background-color: var(--cream-white);
+    box-shadow: 0 0 16px rgba(0,0,0,.16);
+}
+.mobileFilter.fixed .btn-filter {
+    margin-bottom: 0;
+}
+
+#footer {
+    padding: 15px;
+    background-color: var(--color-primary);
+    color: var(--cream-white);
+    text-align: center;
+    margin-top: auto;
+    font-size: 1.2rem;
+}
