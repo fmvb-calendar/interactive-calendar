@@ -137,5 +137,25 @@
             <div class="score">0-0 | 0-0 | 0-0</div>
         </li>
     </template>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7JcpyDjh8tt1Ih1gq3vOk82LiCvPxz8c",
+            authDomain: "calendrier-competition-volley.firebaseapp.com",
+            databaseURL: "https://calendrier-competition-volley-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "calendrier-competition-volley",
+            storageBucket: "calendrier-competition-volley.firebasestorage.app",
+            messagingSenderId: "969960128864",
+            appId: "1:969960128864:web:8d3a39881a4cb0ca841e05"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+    </script>
 </body>
 </html>
