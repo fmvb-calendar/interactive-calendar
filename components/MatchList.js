@@ -58,6 +58,9 @@ export class MatchList {
         // générer la liste avec séparateurs de date
         this.#buildList()
 
+        // générer dynamiquement le filtres des équipes
+        this.#dynamicFilterTeam()
+
         // cocher le radio "all" par défaut
         const allRadio = element.querySelector('input[name="categorie"][value="all"]')
         if (allRadio) allRadio.checked = true
@@ -182,6 +185,33 @@ export class MatchList {
         this.#dateFilterElement.value = 'all'
         this.#teamFilterElement.value = 'all'
         this.#applyFilters()
+    }
+
+    /**
+     * Gerer dynamiquement les filtres des equipes
+     */
+    #dynamicFilterTeam() {
+        // On vide d'abord le select et on remet "Toutes les équipes"
+        this.#teamFilterElement.innerHTML = ''
+
+        const teamFilter = new Set()
+        this.#match.forEach(match => {
+            teamFilter.add(match.equipeA)
+            teamFilter.add(match.equipeB)
+        })
+        
+        const defaultOption = document.createElement('option')
+        defaultOption.value = 'all'
+        defaultOption.textContent = 'Toutes les équipes'
+        this.#teamFilterElement.append(defaultOption)
+
+        // On trie et on ajoute les équipes
+        Array.from(teamFilter).sort().forEach(team => {
+            const option = document.createElement('option')
+            option.value = team
+            option.textContent = team
+            this.#teamFilterElement.append(option)
+        });
     }
 
 }
