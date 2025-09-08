@@ -1,6 +1,7 @@
 [
   {
     "date": "2025-08-08",
+    "phase": "Phase de poules",
     "heure": "8:30",
     "equipeA": "GNVB",
     "equipeB": "ASSM",
@@ -15,6 +16,22 @@
   },
   {
     "date": "2025-08-09",
+    "phase": "Quart de finale",
+    "heure": "11:30",
+    "equipeA": "1er A",
+    "equipeB": "4e B",
+    "lieu": "Arena sport Toamasina",
+    "competition": "U-18",
+    "categorie": "Homme",
+    "logoA": "./public/images/default.png",
+    "logoB": "./public/images/default.png",
+    "termine": false,
+    "resultat": "",
+    "score": ""
+  },
+  {
+    "date": "2025-08-09",
+    "phase": "Phase de poules",
     "heure": "11:30",
     "equipeA": "CSA",
     "equipeB": "CVBA",
@@ -29,6 +46,7 @@
   },
   {
     "date": "2025-08-08",
+    "phase": "Phase de poules",
     "heure": "7:00",
     "equipeA": "ASI",
     "equipeB": "2AVB",
@@ -43,20 +61,37 @@
   },
   {
     "date": "2025-08-10",
+    "phase": "Demi-finale",
     "heure": "11:30",
-    "equipeA": "ASI",
-    "equipeB": "CVBA",
+    "equipeA": "Q1",
+    "equipeB": "Q2",
     "lieu": "Arena sport Toamasina",
     "competition": "U-18",
     "categorie": "Homme",
-    "logoA": "./public/images/allemagne.png",
-    "logoB": "./public/images/italie.png",
+    "logoA": "./public/images/default.png",
+    "logoB": "./public/images/default.png",
     "termine": false,
     "resultat": "",
     "score": ""
   },
   {
     "date": "2025-08-11",
+    "phase": "Finale",
+    "heure": "12:30",
+    "equipeA": "D1",
+    "equipeB": "D2",
+    "lieu": "Arena sport Toamasina",
+    "competition": "U-18",
+    "categorie": "Femme",
+    "logoA": "./public/images/default.png",
+    "logoB": "./public/images/default.png",
+    "termine": false,
+    "resultat": "",
+    "score": ""
+  },
+  {
+    "date": "2025-08-11",
+    "phase": "Phase de poules",
     "heure": "12:30",
     "equipeA": "ASSM",
     "equipeB": "CSA",
@@ -71,6 +106,7 @@
   },
   {
     "date": "2025-08-08",
+    "phase": "Phase de poules",
     "heure": "12:30",
     "equipeA": "ASSM",
     "equipeB": "CSA",
@@ -85,6 +121,7 @@
   },
   {
     "date": "2025-08-08",
+    "phase": "Phase de poules",
     "heure": "11:30",
     "equipeA": "ASI",
     "equipeB": "CVBA",

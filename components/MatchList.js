@@ -90,39 +90,51 @@ export class MatchList {
         this.#items = []
 
         // regrouper les matchs par date
-        const matchsParDate = new Map()
+        const matchsParPhaseDate = new Map();
+
         this.#match.forEach(match => {
-            if (!matchsParDate.has(match.date)) matchsParDate.set(match.date, [])
-            matchsParDate.get(match.date).push(match)
-        })
+            const phase = match.phase || "Phase de poules";
+            const date = match.date;
+            const key = `${phase}|${date}`;
 
-        // parcourir les dates dans l'ordre
-        Array.from(matchsParDate.keys()).sort().forEach(date => {
+            if (!matchsParPhaseDate.has(key)) matchsParPhaseDate.set(key, []);
+            matchsParPhaseDate.get(key).push(match);
+        });
 
-             // récupérer les matchs NON terminés pour cette date
-            const matchsDuJour = matchsParDate.get(date).filter(match => !match.termine)
+        // 🔥 On trie les clés par date (pas par phase)
+        Array.from(matchsParPhaseDate.keys())
+            .sort((a, b) => {
+                const dateA = a.split('|')[1]; // récupérer la date
+                const dateB = b.split('|')[1];
+                return new Date(dateA) - new Date(dateB);
+            })
+            .forEach(key => {
+                const [phase, date] = key.split('|');
 
-            // si aucun match non terminé, on passe à la date suivante
-            if (matchsDuJour.length === 0) return
+                const matchsSection = matchsParPhaseDate.get(key).filter(match => !match.termine);
+                if (matchsSection.length === 0) return;
 
-            // créer séparateur
-            const separator = document.createElement('li')
-            separator.className = 'date-separator'
-            separator.textContent = formatDateFr(date)
-            this.#listElement.append(separator)
-            // trier les matchs de cette date par heure avant affichage
-            matchsDuJour
-                .sort((a, b) => {
-                    const [hA, mA] = a.heure.split(':').map(Number)
-                    const [hB, mB] = b.heure.split(':').map(Number)
-                    return hA === hB ? mA - mB : hA - hB
-                })
-                .forEach(match => {
-                    const item = new MatchListItem(match)
-                    this.#listElement.append(item.element)
-                    this.#items.push(item.element)
-                })
-        })
+                // Créer le séparateur
+                const separator = document.createElement('li');
+                separator.className = 'date-separator';
+                separator.textContent = `${phase} – ${formatDateFr(date)}`;
+                this.#listElement.append(separator);
+
+                // Trier les matchs de cette section par heure
+                matchsSection
+                    .sort((a, b) => {
+                        const [hA, mA] = a.heure.split(':').map(Number);
+                        const [hB, mB] = b.heure.split(':').map(Number);
+                        return hA === hB ? mA - mB : hA - hB;
+                    })
+                    .forEach(match => {
+                        const item = new MatchListItem(match);
+                        this.#listElement.append(item.element);
+                        this.#items.push(item.element);
+                    });
+            });
+
+
 
         // ajouter le message “Aucun match trouvé” à la fin
         this.#listElement.append(this.#noMatchElement)
