@@ -31,6 +31,13 @@ export function formatDateFr(dateStr) {
         year: 'numeric'
     })
 }
+export function formatDateFilter(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('fr-FR', {
+    weekday: 'short', day: '2-digit', month: '2-digit'
+  });
+}
+
 
 /**
  * Gère la navigation par onglets (Matchs / Résultats).

@@ -1,4 +1,4 @@
-import { changeText, cloneTemplate, formatDateFr, removeElement} from "../functions/dom.js"
+import { changeText, cloneTemplate, formatDateFilter, formatDateFr, removeElement} from "../functions/dom.js"
 
 export class MatchList {
 
@@ -60,6 +60,9 @@ export class MatchList {
 
         // générer dynamiquement le filtres des équipes
         this.#dynamicFilterTeam()
+
+        // générer dynamiquement le filtre des dates
+        this.#dynamicFilterDate()
 
         // cocher le radio "all" par défaut
         const allRadio = element.querySelector('input[name="categorie"][value="all"]')
@@ -244,6 +247,32 @@ export class MatchList {
 
     }
 
+    /**
+     * Gerer dynamiquement les filtres des dates
+     */
+    #dynamicFilterDate() {
+
+        // Créer un Set pour avoir des dates uniques
+        const datesSet = new Set();
+        this.#match.forEach(match => {
+        if (!match.termine) { // Optionnel : tu peux inclure/exclure les matchs terminés
+            datesSet.add(match.date);
+        }
+        });
+
+        // Vider le select et ajouter l'option "Toutes"
+        this.#dateFilterElement.innerHTML = '<option value="all">Toutes les dates</option>';
+
+        // Ajouter chaque date triée
+        Array.from(datesSet).sort().forEach(date => {
+        const option = document.createElement('option');
+        option.value = date;
+        option.textContent = formatDateFilter(date); // Format FR
+        dateFilter.appendChild(option);
+        });
+
+    }
+
 }
 
 class MatchListItem {
@@ -272,7 +301,9 @@ class MatchListItem {
         changeText(li, '.match-heure', match.heure)
 
         li.querySelector('.team-flag-a img').setAttribute('src', match.logoA)
+        li.querySelector('.team-flag-a img').setAttribute('alt', match.equipeA)
         li.querySelector('.team-flag-b img').setAttribute('src', match.logoB)
+        li.querySelector('.team-flag-b img').setAttribute('alt', match.equipeB)
     }
 
     get element() {
