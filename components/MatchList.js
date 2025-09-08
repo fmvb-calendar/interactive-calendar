@@ -218,12 +218,30 @@ export class MatchList {
         this.#teamFilterElement.append(defaultOption)
 
         // On trie et on ajoute les équipes
-        Array.from(teamFilter).sort().forEach(team => {
-            const option = document.createElement('option')
-            option.value = team
-            option.textContent = team
-            this.#teamFilterElement.append(option)
-        });
+        Array.from(teamFilter)
+            .filter(team => {
+                // Éliminer les valeurs vides ou null
+                if (!team) return false;
+
+                // Placeholder quart/demi (Q1, Q2, D1, etc.)
+                if (/^[QD]\d$/i.test(team)) return false;
+
+                // "Vainqueur ..." ou "Perdant ..."
+                if (/^(Vainqueur|Perdant)/i.test(team)) return false;
+
+                // Placeholders type "1er A", "4e B", etc.
+                if (/^\d+(er|e)\s+[A-Z]$/i.test(team)) return false;
+
+                return true;
+            })
+            .sort()
+            .forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                this.#teamFilterElement.appendChild(option);
+            });
+
     }
 
 }
