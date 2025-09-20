@@ -4,19 +4,18 @@ export class ClassementList {
   /**
    * @param {Match[]} matchs
    * @param {Object} [options]
-   * @param {(team:string,cat?:string)=>string} [options.getPoule] - fallback si pas de teamMeta/teamMetaByCat ni champ match.poule
-   * @param {Object<string,{poule:string,logo?:string,displayName?:string}>} [options.teamMeta] - metas globales (si pas d’orga par catégorie)
-   * @param {Object<string,Object<string,{poule:string,logo?:string,displayName?:string}>>} [options.teamMetaByCat] - metas scindées par catégorie (ex: { Homme:{...}, Femme:{...} })
-   * @param {string[]} [options.categories] - si tu veux séparer par catégories (ex: ["Homme","Femme"])
+   * @param {(team:string,cat?:string)=>string} [options.getPoule]
+   * @param {Object<string,{poule:string,logo?:string,displayName?:string}>} [options.teamMeta]
+   * @param {Object<string,Object<string,{poule:string,logo?:string,displayName?:string}>>} [options.teamMetaByCat]
+   * @param {string[]} [options.categories]
    */
   constructor(matchs, options = {}) {
     this.matchs = Array.isArray(matchs) ? matchs : [];
 
-    // Métadonnées
-    this.teamMeta = options.teamMeta || {}; // fallback global
-    this.teamMetaByCat = options.teamMetaByCat || null; // préféré si fourni
+    // Métadonnées équipes (globales ou par catégorie)
+    this.teamMeta = options.teamMeta || {};
+    this.teamMetaByCat = options.teamMetaByCat || null;
 
-    // Récupération de la poule d’une équipe (priorise meta par catégorie)
     this.getPoule =
       options.getPoule ||
       ((team, cat) => {
@@ -37,7 +36,7 @@ export class ClassementList {
   render(container) {
     container.innerHTML = "";
 
-    // Garde seulement les matchs terminés avec un resultat set "x-y"
+    // On garde seulement les matchs terminés avec un resultat "x-y"
     const finished = this.matchs.filter(
       (m) =>
         m.termine === true &&
@@ -46,31 +45,30 @@ export class ClassementList {
     );
 
     if (this.categories && this.categories.length) {
-      // Afficher un bloc par catégorie
       for (const cat of this.categories) {
         const h2 = document.createElement("h2");
         h2.textContent = `Classement — ${cat}`;
         container.appendChild(h2);
 
-        // 1) Filtrer les matchs terminés de cette catégorie
+        // Matches de la catégorie
         const finishedCat = finished.filter((m) => m.categorie === cat);
 
-        // 2) Construire les stats pour cette catégorie
-        const byPouleStatsCat = this.#buildStatsByPoule(finishedCat, cat);
+        // Stats + H2H pour cette catégorie
+        const { byPoule, h2h } = this.#buildStatsByPoule(finishedCat, cat);
 
-        // 3) Injecter les équipes inscrites de la catégorie (même à 0 match)
-        this.#ensureAllTeamsFromMeta(byPouleStatsCat, cat);
+        // Injecter toutes les équipes de la catégorie (même à 0 match)
+        this.#ensureAllTeamsFromMeta(byPoule, cat, h2h);
 
-        // 4) Rendre les poules de la catégorie
-        for (const [poule, rows] of Object.entries(byPouleStatsCat)) {
+        // Rendu
+        for (const [poule, rows] of Object.entries(byPoule)) {
           container.appendChild(this.#renderPouleTable(poule, rows));
         }
       }
     } else {
       // Cas simple : toutes catégories confondues
-      const byPouleStats = this.#buildStatsByPoule(finished, null);
-      this.#ensureAllTeamsFromMeta(byPouleStats, null);
-      for (const [poule, rows] of Object.entries(byPouleStats)) {
+      const { byPoule, h2h } = this.#buildStatsByPoule(finished, null);
+      this.#ensureAllTeamsFromMeta(byPoule, null, h2h);
+      for (const [poule, rows] of Object.entries(byPoule)) {
         container.appendChild(this.#renderPouleTable(poule, rows));
       }
     }
@@ -78,19 +76,51 @@ export class ClassementList {
 
   // ----------------- Internes -----------------
 
+  #ratio(a, b) {
+    if (b > 0) return a / b;
+    return a > 0 ? Infinity : 0;
+  }
+
   /**
-   * Construit les stats par poule à partir d’une liste de matchs *terminés*
+   * Construit les stats par poule + la matrice H2H (confrontations directes)
    * @param {Match[]} matchs
-   * @param {string|null} cat - catégorie courante (Homme/Femme) si scindée
+   * @param {string|null} cat
+   * @returns {{byPoule:Object<string,Array>, h2h:Object}}
    */
   #buildStatsByPoule(matchs, cat = null) {
-    /** structure: poule -> Map(team -> stats) */
+    /** table: poule -> Map(team -> stats) */
     const table = {};
+    /** h2h: poule -> A -> B -> { wins, setsPlus, setsMoins, ptsPlus, ptsMoins } */
+    const h2h = {};
+
+    const ensureH2H = (p, a, b) => {
+      h2h[p] = h2h[p] || {};
+      h2h[p][a] = h2h[p][a] || {};
+      h2h[p][b] = h2h[p][b] || {};
+      if (!h2h[p][a][b]) {
+        h2h[p][a][b] = {
+          wins: 0,
+          setsPlus: 0,
+          setsMoins: 0,
+          ptsPlus: 0,
+          ptsMoins: 0,
+        };
+      }
+      if (!h2h[p][b][a]) {
+        h2h[p][b][a] = {
+          wins: 0,
+          setsPlus: 0,
+          setsMoins: 0,
+          ptsPlus: 0,
+          ptsMoins: 0,
+        };
+      }
+    };
 
     for (const m of matchs) {
       const currentCat = cat ?? m.categorie;
 
-      // 1) Déterminer la poule (priorité au champ m.poule si présent)
+      // 1) Déterminer la poule
       const poule =
         m.poule ||
         this.getPoule(m.equipeA, currentCat) ||
@@ -99,7 +129,7 @@ export class ClassementList {
 
       if (!table[poule]) table[poule] = new Map();
 
-      // 2) Récupérer/Créer les lignes d'équipe
+      // 2) Lignes d'équipe
       const teamA = this.#ensureTeam(
         table[poule],
         m.equipeA,
@@ -117,9 +147,10 @@ export class ClassementList {
       teamA.J++;
       teamB.J++;
 
+      // 4) Sets du match
       const [aSets, bSets] = this.#parseResultatSets(m.resultat);
 
-      // 4) Points classement selon score en sets
+      // 5) Points de classement
       if (aSets > bSets) {
         teamA.G++;
         teamB.P++;
@@ -134,13 +165,13 @@ export class ClassementList {
         teamA.Pts += losePts;
       }
 
-      // 5) Départages: sets+ / sets-
+      // 6) Cumul sets
       teamA.setsPlus += aSets;
       teamA.setsMoins += bSets;
       teamB.setsPlus += bSets;
       teamB.setsMoins += aSets;
 
-      // 6) Points cumulés dans les sets (optionnel)
+      // 7) Cumul points (si disponibles)
       const setPoints = this.#parseScorePoints(m.score);
       if (setPoints) {
         teamA.ptsPlus += setPoints.aPlus;
@@ -148,34 +179,44 @@ export class ClassementList {
         teamB.ptsPlus += setPoints.bPlus;
         teamB.ptsMoins += setPoints.bMoins;
       }
+
+      // 8) H2H
+      ensureH2H(poule, m.equipeA, m.equipeB);
+      h2h[poule][m.equipeA][m.equipeB].setsPlus += aSets;
+      h2h[poule][m.equipeA][m.equipeB].setsMoins += bSets;
+      h2h[poule][m.equipeB][m.equipeA].setsPlus += bSets;
+      h2h[poule][m.equipeB][m.equipeA].setsMoins += aSets;
+
+      if (setPoints) {
+        h2h[poule][m.equipeA][m.equipeB].ptsPlus += setPoints.aPlus;
+        h2h[poule][m.equipeA][m.equipeB].ptsMoins += setPoints.aMoins;
+        h2h[poule][m.equipeB][m.equipeA].ptsPlus += setPoints.bPlus;
+        h2h[poule][m.equipeB][m.equipeA].ptsMoins += setPoints.bMoins;
+      }
+
+      if (aSets > bSets) h2h[poule][m.equipeA][m.equipeB].wins++;
+      if (bSets > aSets) h2h[poule][m.equipeB][m.equipeA].wins++;
     }
 
-    // 7) Transformer en tableaux triés
-    const sorted = {};
+    // 9) Transformer en tableaux triés (avec comparateur avancé)
+    const byPoule = {};
     for (const [poule, map] of Object.entries(table)) {
-      sorted[poule] = Array.from(map.values()).sort((t1, t2) => {
-        if (t2.Pts !== t1.Pts) return t2.Pts - t1.Pts;
-        const dSet1 = t1.setsPlus - t1.setsMoins;
-        const dSet2 = t2.setsPlus - t2.setsMoins;
-        if (dSet2 !== dSet1) return dSet2 - dSet1;
-        if (t2.G !== t1.G) return t2.G - t1.G;
-        return t1.J - t2.J;
-      });
+      const comp = this.#makeComparator(h2h[poule] || {});
+      byPoule[poule] = Array.from(map.values()).sort(comp);
     }
-    return sorted;
+    return { byPoule, h2h };
   }
 
   /**
-   * S’assurer que toutes les équipes déclarées (métadonnées) apparaissent
-   * même si elles n’ont pas encore joué/terminé un match.
-   * @param {Object<string,Array>} byPouleStats
-   * @param {string|null} cat
+   * Injecter toutes les équipes déclarées en meta (même à 0 match) puis re-trier
    */
-  #ensureAllTeamsFromMeta(byPouleStats, cat = null) {
+  #ensureAllTeamsFromMeta(byPouleStats, cat = null, h2h = {}) {
     const metaSet =
-      (this.teamMetaByCat && cat && this.teamMetaByCat[cat]) || this.teamMeta;
+      (this.teamMetaByCat && cat && this.teamMetaByCat[cat]) ||
+      this.teamMeta ||
+      {};
 
-    for (const [team, meta] of Object.entries(metaSet || {})) {
+    for (const [team, meta] of Object.entries(metaSet)) {
       const poule = meta.poule || "Poule unique";
       if (!byPouleStats[poule]) byPouleStats[poule] = [];
       const exists = byPouleStats[poule].some((r) => r.team === team);
@@ -194,27 +235,85 @@ export class ClassementList {
           ptsMoins: 0,
         });
       }
-      // Re-trier la poule pour garder l’ordre (pts, diff sets, etc.)
-      byPouleStats[poule].sort((t1, t2) => {
-        if (t2.Pts !== t1.Pts) return t2.Pts - t1.Pts;
-        const dSet1 = t1.setsPlus - t1.setsMoins;
-        const dSet2 = t2.setsPlus - t2.setsMoins;
-        if (dSet2 !== dSet1) return dSet2 - dSet1;
-        if (t2.G !== t1.G) return t2.G - t1.G;
-        return t1.J - t2.J;
-      });
+      // Re-tri avec le comparateur avancé
+      const comp = this.#makeComparator(h2h[poule] || {});
+      byPouleStats[poule].sort(comp);
     }
   }
 
   /**
-   * Ajoute/retourne la ligne d’équipe dans une Map de poule
+   * Comparateur avancé (pts, G, ratio sets, diff sets, ratio pts, diff pts, H2H, J)
    */
+  #makeComparator(h2hPoule) {
+    const ratio = this.#ratio.bind(this);
+    const compareH2H = this.#compareH2H.bind(this, h2hPoule);
+
+    return (t1, t2) => {
+      // 1) Points
+      if (t2.Pts !== t1.Pts) return t2.Pts - t1.Pts;
+
+      // 2) Victoires
+      if (t2.G !== t1.G) return t2.G - t1.G;
+
+      // 3) Ratio de sets
+      const rSet1 = ratio(t1.setsPlus, t1.setsMoins);
+      const rSet2 = ratio(t2.setsPlus, t2.setsMoins);
+      if (rSet2 !== rSet1) return rSet2 - rSet1;
+
+      // 4) Différence de sets
+      const dSet1 = t1.setsPlus - t1.setsMoins;
+      const dSet2 = t2.setsPlus - t2.setsMoins;
+      if (dSet2 !== dSet1) return dSet2 - dSet1;
+
+      // 5) Ratio de points
+      const rPts1 = ratio(t1.ptsPlus, t1.ptsMoins);
+      const rPts2 = ratio(t2.ptsPlus, t2.ptsMoins);
+      if (rPts2 !== rPts1) return rPts2 - rPts1;
+
+      // 6) Différence de points
+      const dPts1 = t1.ptsPlus - t1.ptsMoins;
+      const dPts2 = t2.ptsPlus - t2.ptsMoins;
+      if (dPts2 !== dPts1) return dPts2 - dPts1;
+
+      // 7) Confrontation directe (A vs B)
+      const h2hCmp = compareH2H(t1.team, t2.team);
+      if (h2hCmp !== 0) return h2hCmp;
+
+      // 8) Moins de matchs joués
+      if (t1.J !== t2.J) return t1.J - t2.J;
+
+      return 0;
+    };
+  }
+
+  /**
+   * Confrontation directe: victoires → ratio sets → ratio points
+   * @returns {number} >0 si B devant, <0 si A devant, 0 si égalité
+   */
+  #compareH2H(h2hPoule, teamA, teamB) {
+    if (!h2hPoule) return 0;
+    const A = h2hPoule?.[teamA]?.[teamB];
+    const B = h2hPoule?.[teamB]?.[teamA];
+    if (!A || !B) return 0;
+
+    if (A.wins !== B.wins) return B.wins - A.wins;
+
+    const rSetA = this.#ratio(A.setsPlus, A.setsMoins);
+    const rSetB = this.#ratio(B.setsPlus, B.setsMoins);
+    if (rSetB !== rSetA) return rSetB - rSetA;
+
+    const rPtsA = this.#ratio(A.ptsPlus, A.ptsMoins);
+    const rPtsB = this.#ratio(B.ptsPlus, B.ptsMoins);
+    if (rPtsB !== rPtsA) return rPtsB - rPtsA;
+
+    return 0;
+  }
+
   #ensureTeam(map, name, logoFromMatch, cat) {
     if (!map.has(name)) {
       const metaCat =
         (this.teamMetaByCat && cat && this.teamMetaByCat[cat]?.[name]) || {};
       const metaGlobal = this.teamMeta[name] || {};
-      // metaCat > metaGlobal > logos issus des matchs
       const meta = { ...metaGlobal, ...metaCat };
       map.set(name, {
         team: name,
@@ -230,7 +329,6 @@ export class ClassementList {
         ptsMoins: 0,
       });
     } else {
-      // si on n’avait pas de logo, on peut compléter via logoFromMatch
       const row = map.get(name);
       if (!row.logo && logoFromMatch) row.logo = logoFromMatch;
     }
@@ -249,9 +347,11 @@ export class ClassementList {
     if (winnerSets === 3 && loserSets === 2) {
       return { winPts: 2, losePts: 1 };
     }
+    // fallback
     return { winPts: 3, losePts: 0 };
   }
 
+  // "25-20 | 27-25 | 25-17" → cumuls des points
   #parseScorePoints(scoreStr) {
     if (!scoreStr || typeof scoreStr !== "string") return null;
     const sets = scoreStr
@@ -330,10 +430,7 @@ export class ClassementList {
 }
 
 /**
- * Métadonnées équipes — une entrée par NOM EXACT tel qu’il apparaît dans JSON (equipeA/equipeB).
- * - poule: "Poule A"/"Poule B"/etc.
- * - logo: chemin vers l’icône
- * - displayName: libellé d’affichage
+ * Métadonnées équipes — NOM EXACT (equipeA/equipeB dans ton JSON)
  */
 
 // FEMME
