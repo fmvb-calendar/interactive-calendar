@@ -4,19 +4,29 @@ export class ClassementList {
   /**
    * @param {Match[]} matchs
    * @param {Object} [options]
-   * @param {(team:string)=>string} [options.getPoule] - fallback si pas de teamMeta ni champ match.poule
-   * @param {Object<string,{poule:string,logo?:string,displayName?:string}>} [options.teamMeta]
-   * @param {string[]} [options.categories] - si tu veux séparer par catégories
+   * @param {(team:string,cat?:string)=>string} [options.getPoule] - fallback si pas de teamMeta/teamMetaByCat ni champ match.poule
+   * @param {Object<string,{poule:string,logo?:string,displayName?:string}>} [options.teamMeta] - metas globales (si pas d’orga par catégorie)
+   * @param {Object<string,Object<string,{poule:string,logo?:string,displayName?:string}>>} [options.teamMetaByCat] - metas scindées par catégorie (ex: { Homme:{...}, Femme:{...} })
+   * @param {string[]} [options.categories] - si tu veux séparer par catégories (ex: ["Homme","Femme"])
    */
   constructor(matchs, options = {}) {
     this.matchs = Array.isArray(matchs) ? matchs : [];
-    this.teamMeta = options.teamMeta || {}; // ← clé: nom équipe exact
+
+    // Métadonnées
+    this.teamMeta = options.teamMeta || {}; // fallback global
+    this.teamMetaByCat = options.teamMetaByCat || null; // préféré si fourni
+
+    // Récupération de la poule d’une équipe (priorise meta par catégorie)
     this.getPoule =
       options.getPoule ||
-      ((team) => {
-        const meta = this.teamMeta[team];
-        return meta?.poule || "Poule unique";
+      ((team, cat) => {
+        const metaCat =
+          (this.teamMetaByCat && cat && this.teamMetaByCat[cat]?.[team]) ||
+          this.teamMeta[team] ||
+          null;
+        return metaCat?.poule || "Poule unique";
       });
+
     this.categories = options.categories || null;
   }
 
@@ -27,7 +37,7 @@ export class ClassementList {
   render(container) {
     container.innerHTML = "";
 
-    // On garde seulement les matchs terminés avec un resultat set "x-y"
+    // Garde seulement les matchs terminés avec un resultat set "x-y"
     const finished = this.matchs.filter(
       (m) =>
         m.termine === true &&
@@ -35,33 +45,31 @@ export class ClassementList {
         /^\d+\s*-\s*\d+$/.test(m.resultat.trim())
     );
 
-    // (A) Construire les stats à partir des matchs terminés
-    const byPouleStats = this.#buildStatsByPoule(finished);
-
-    // (B) Injecter les équipes "inscrites" via teamMeta (pour les afficher même à 0 match)
-    this.#ensureAllTeamsFromMeta(byPouleStats);
-
-    // Si tu veux séparer par catégories : regrouper, puis rendre
-    if (this.categories) {
-      const byCat = {};
-      for (const m of this.matchs) {
-        const cat = m.categorie || "Inconnue";
-        if (!byCat[cat]) byCat[cat] = true;
-      }
-      Object.keys(byCat).forEach((cat) => {
+    if (this.categories && this.categories.length) {
+      // Afficher un bloc par catégorie
+      for (const cat of this.categories) {
         const h2 = document.createElement("h2");
         h2.textContent = `Classement — ${cat}`;
         container.appendChild(h2);
 
-        // Filtrer les poules en ne gardant que les équipes qui apparaissent dans cette catégorie ?
-        // La plupart du temps, on mélange les catégories dans les mêmes poules → on affiche tout
-        // Si besoin on pourrait filtrer par cat en croisant les matchs.
-        for (const [poule, rows] of Object.entries(byPouleStats)) {
+        // 1) Filtrer les matchs terminés de cette catégorie
+        const finishedCat = finished.filter((m) => m.categorie === cat);
+
+        // 2) Construire les stats pour cette catégorie
+        const byPouleStatsCat = this.#buildStatsByPoule(finishedCat, cat);
+
+        // 3) Injecter les équipes inscrites de la catégorie (même à 0 match)
+        this.#ensureAllTeamsFromMeta(byPouleStatsCat, cat);
+
+        // 4) Rendre les poules de la catégorie
+        for (const [poule, rows] of Object.entries(byPouleStatsCat)) {
           container.appendChild(this.#renderPouleTable(poule, rows));
         }
-      });
+      }
     } else {
-      // Cas simple : on rend toutes les poules
+      // Cas simple : toutes catégories confondues
+      const byPouleStats = this.#buildStatsByPoule(finished, null);
+      this.#ensureAllTeamsFromMeta(byPouleStats, null);
       for (const [poule, rows] of Object.entries(byPouleStats)) {
         container.appendChild(this.#renderPouleTable(poule, rows));
       }
@@ -70,23 +78,40 @@ export class ClassementList {
 
   // ----------------- Internes -----------------
 
-  #buildStatsByPoule(matchs) {
+  /**
+   * Construit les stats par poule à partir d’une liste de matchs *terminés*
+   * @param {Match[]} matchs
+   * @param {string|null} cat - catégorie courante (Homme/Femme) si scindée
+   */
+  #buildStatsByPoule(matchs, cat = null) {
     /** structure: poule -> Map(team -> stats) */
     const table = {};
 
     for (const m of matchs) {
+      const currentCat = cat ?? m.categorie;
+
       // 1) Déterminer la poule (priorité au champ m.poule si présent)
       const poule =
         m.poule ||
-        this.getPoule(m.equipeA) ||
-        this.getPoule(m.equipeB) ||
+        this.getPoule(m.equipeA, currentCat) ||
+        this.getPoule(m.equipeB, currentCat) ||
         "Poule unique";
 
       if (!table[poule]) table[poule] = new Map();
 
       // 2) Récupérer/Créer les lignes d'équipe
-      const teamA = this.#ensureTeam(table[poule], m.equipeA, m.logoA);
-      const teamB = this.#ensureTeam(table[poule], m.equipeB, m.logoB);
+      const teamA = this.#ensureTeam(
+        table[poule],
+        m.equipeA,
+        m.logoA,
+        currentCat
+      );
+      const teamB = this.#ensureTeam(
+        table[poule],
+        m.equipeB,
+        m.logoB,
+        currentCat
+      );
 
       // 3) Incréments de base
       teamA.J++;
@@ -115,7 +140,7 @@ export class ClassementList {
       teamB.setsPlus += bSets;
       teamB.setsMoins += aSets;
 
-      // 6) Si tu fournis m.score (points par set), on peut affiner (optionnel)
+      // 6) Points cumulés dans les sets (optionnel)
       const setPoints = this.#parseScorePoints(m.score);
       if (setPoints) {
         teamA.ptsPlus += setPoints.aPlus;
@@ -140,9 +165,17 @@ export class ClassementList {
     return sorted;
   }
 
-  #ensureAllTeamsFromMeta(byPouleStats) {
-    // Pour chaque équipe de teamMeta, s’assurer qu’elle est visible dans sa poule même à 0 match.
-    for (const [team, meta] of Object.entries(this.teamMeta)) {
+  /**
+   * S’assurer que toutes les équipes déclarées (métadonnées) apparaissent
+   * même si elles n’ont pas encore joué/terminé un match.
+   * @param {Object<string,Array>} byPouleStats
+   * @param {string|null} cat
+   */
+  #ensureAllTeamsFromMeta(byPouleStats, cat = null) {
+    const metaSet =
+      (this.teamMetaByCat && cat && this.teamMetaByCat[cat]) || this.teamMeta;
+
+    for (const [team, meta] of Object.entries(metaSet || {})) {
       const poule = meta.poule || "Poule unique";
       if (!byPouleStats[poule]) byPouleStats[poule] = [];
       const exists = byPouleStats[poule].some((r) => r.team === team);
@@ -173,9 +206,16 @@ export class ClassementList {
     }
   }
 
-  #ensureTeam(map, name, logoFromMatch) {
+  /**
+   * Ajoute/retourne la ligne d’équipe dans une Map de poule
+   */
+  #ensureTeam(map, name, logoFromMatch, cat) {
     if (!map.has(name)) {
-      const meta = this.teamMeta[name] || {};
+      const metaCat =
+        (this.teamMetaByCat && cat && this.teamMetaByCat[cat]?.[name]) || {};
+      const metaGlobal = this.teamMeta[name] || {};
+      // metaCat > metaGlobal > logos issus des matchs
+      const meta = { ...metaGlobal, ...metaCat };
       map.set(name, {
         team: name,
         displayName: meta.displayName || name,
@@ -290,71 +330,13 @@ export class ClassementList {
 }
 
 /**
- * Exemple de métadonnées équipes.
- * Met une *et une seule* entrée par NOM EXACT d’équipe tel qu’il apparaît dans ton JSON (equipeA/equipeB).
+ * Métadonnées équipes — une entrée par NOM EXACT tel qu’il apparaît dans JSON (equipeA/equipeB).
  * - poule: "Poule A"/"Poule B"/etc.
  * - logo: chemin vers l’icône
- * - displayName: si tu veux afficher un libellé différent
+ * - displayName: libellé d’affichage
  */
-// teams.meta.js — à importer dans app.js
-export const TEAM_META_HOMME = {
-  COSFA: {
-    logo: "./public/images/cosfa.png",
-    poule: "Poule C",
-    displayName: "COSFA",
-  },
-  MAMA: {
-    logo: "./public/images/mama.png",
-    poule: "Poule C",
-    displayName: "MAMA",
-  },
-  "ASI 1": {
-    logo: "./public/images/asi.png",
-    poule: "Poule C",
-    displayName: "ASI 1",
-  },
-  NADJY: {
-    logo: "./public/images/nadjy.png",
-    poule: "Poule C",
-    displayName: "NADJY",
-  },
-  MVBC: {
-    logo: "./public/images/mvbc.png",
-    poule: "Poule D",
-    displayName: "MVBC",
-  },
-  "POLE GN": {
-    logo: "./public/images/gnvb.png",
-    poule: "Poule D",
-    displayName: "Pôle GN",
-  },
-  "GNVB 2": {
-    logo: "./public/images/gnvb.png",
-    poule: "Poule D",
-    displayName: "GNVB 2",
-  },
-  CVBF: {
-    logo: "./public/images/cvbf.png",
-    poule: "Poule D",
-    displayName: "CVBF",
-  },
-  "ASI 2": {
-    logo: "./public/images/asi.png",
-    poule: "Poule D",
-    displayName: "ASI 2",
-  },
-  "GNVB 1": {
-    logo: "./public/images/gnvb.png",
-    poule: "Poule D",
-    displayName: "GNVB 1",
-  },
-  EVBI: {
-    logo: "./public/images/evbi.png",
-    poule: "Poule C",
-    displayName: "EVBI",
-  },
-};
 
+// FEMME
 export const TEAM_META_FEMME = {
   "BI'AS": {
     logo: "./public/images/bias.png",
@@ -400,5 +382,64 @@ export const TEAM_META_FEMME = {
     logo: "./public/images/mami.png",
     poule: "Poule A",
     displayName: "MAMI",
+  },
+};
+
+// HOMME
+export const TEAM_META_HOMME = {
+  COSFA: {
+    logo: "./public/images/cosfa.png",
+    poule: "Poule C",
+    displayName: "COSFA",
+  },
+  MAMA: {
+    logo: "./public/images/mama.png",
+    poule: "Poule C",
+    displayName: "MAMA",
+  },
+  "ASI 1": {
+    logo: "./public/images/asi.png",
+    poule: "Poule C",
+    displayName: "ASI 1",
+  },
+  NADJY: {
+    logo: "./public/images/nadjy.png",
+    poule: "Poule C",
+    displayName: "NADJY",
+  },
+  EVBI: {
+    logo: "./public/images/evbi.png",
+    poule: "Poule C",
+    displayName: "EVBI",
+  },
+  MVBC: {
+    logo: "./public/images/mvbc.png",
+    poule: "Poule D",
+    displayName: "MVBC",
+  },
+  "POLE GN": {
+    logo: "./public/images/gnvb.png",
+    poule: "Poule D",
+    displayName: "Pôle GN",
+  },
+  "GNVB 2": {
+    logo: "./public/images/gnvb.png",
+    poule: "Poule D",
+    displayName: "GNVB 2",
+  },
+  CVBF: {
+    logo: "./public/images/cvbf.png",
+    poule: "Poule D",
+    displayName: "CVBF",
+  },
+  "ASI 2": {
+    logo: "./public/images/asi.png",
+    poule: "Poule D",
+    displayName: "ASI 2",
+  },
+  "GNVB 1": {
+    logo: "./public/images/gnvb.png",
+    poule: "Poule D",
+    displayName: "GNVB 1",
   },
 };

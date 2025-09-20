@@ -1,6 +1,6 @@
 import { MatchList } from "./components/MatchList.js";
 import { ResultList } from "./components/ResultList.js";
-// ⚠️ Assure-toi que le nom du fichier/export correspond bien : Classement.js OU ClassementList.js
+// ClassementList + métas équipes
 import {
   ClassementList,
   TEAM_META_HOMME,
@@ -29,7 +29,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// ⬇️ Déclare les éléments une fois (le script est en `defer`, le DOM est prêt)
+// Éléments du DOM (script chargé en defer)
 const tabCalendar = document.querySelector("#calendar");
 const tabResultat = document.querySelector("#resultat");
 const tabClassement = document.querySelector("#classement");
@@ -56,21 +56,25 @@ async function loadMatchs() {
     }
   }
 
-  // Matchs (à venir)
+  // Matchs à venir
   new MatchList(matchs).appendTo(tabCalendar);
 
-  // Résultats (terminés)
+  // Résultats terminés
   new ResultList(matchs).appendTo(tabResultat);
 
-  const TEAM_META = { ...TEAM_META_HOMME, ...TEAM_META_FEMME };
-
+  // Classements séparés par catégorie (métadonnées scellées par catégorie)
   const classement = new ClassementList(matchs, {
-    teamMeta: TEAM_META, // ← les poules/logos viennent d’ici
-    // categories: ["Homme","Femme"],  // optionnel si tu veux des titres par catégorie
+    teamMetaByCat: {
+      Homme: TEAM_META_HOMME,
+      Femme: TEAM_META_FEMME,
+    },
+    categories: ["Femme", "Homme"], // affiche "Classement — Homme" puis "Classement — Femme"
   });
-  classement.render(document.querySelector("#classement"));
 
-  toggleTab(); // si ta fonction n'a pas besoin de param, sinon passe ce qu'elle attend
+  classement.render(tabClassement);
+
+  // UI
+  toggleTab();
   mobileFilter();
   fixedFilterMobile();
 }
