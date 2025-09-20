@@ -594,3 +594,88 @@ h1 {
     50% { transform: scale(1.4); opacity: 0.6; }
     100% { transform: scale(1); opacity: 1; }
 }
+
+.classement-poule {
+  margin-bottom: 30px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden; /* arrondis + header qui colle bien */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* Titre poule */
+.classement-poule h3 {
+  background-color: var(--green-pastel);
+  padding: 12px;
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--black);
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Table */
+.classement-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+/* En-têtes */
+.classement-table th {
+  background-color: #f7f7f7;
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Cellules */
+.classement-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Séparateurs verticaux discrets sauf 1ère colonne */
+.classement-table td:not(:first-child),
+.classement-table th:not(:first-child) {
+  border-left: 1px solid #f0f0f0;
+}
+
+/* Mettre la colonne "Pts" en avant */
+.classement-table td:last-child,
+.classement-table th:last-child {
+  font-weight: bold;
+  color: #222;
+}
+
+/* Effet zebra (lisibilité lignes) */
+.classement-table tbody tr:nth-child(even) {
+  background-color: #fcfcfc;
+}
+
+/* Mettre la 1ère ligne en valeur (leader) */
+.classement-table tbody tr:first-child {
+  background-color: #e6f7e6;
+  font-weight: 600;
+}
+
+/* Colonne rang */
+.classement-table th:first-child,
+.classement-table td:first-child {
+  width: 40px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  background-color: #fafafa; /* petit contraste */
+}
+
+/* Mettre en avant le leader */
+.classement-table tbody tr:first-child td {
+  background-color: #e6f7e6; /* vert pâle */
+  font-weight: bold;
+}
+
+.team-cell img {
+    max-width: 60px;
+    vertical-align: middle;
+}
